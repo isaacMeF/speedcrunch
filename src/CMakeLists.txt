@@ -74,7 +74,7 @@ IF( APPLE )
     COMMAND mkdir ARGS -p ${speedcrunch_BOOKSDIR}
     COMMAND cp ARGS -f src/resources/${MACOSX_BUNDLE_ICON_FILE} ${speedcrunch_RESOURCE_DIR}
     COMMAND cp ARGS -f src/speedcrunch.desktop ${speedcrunch_RESOURCE_DIR}
-    COMMAND ${QT_LRELEASE_EXECUTABLE} src/i18n/*.ts -qm src/i18n/*.qm
+    COMMAND bash -c "${QT_LRELEASE_EXECUTABLE} src/i18n/*.ts -qm src/i18n/*.qm"
     COMMAND cp ARGS -f src/i18n/*.qm ${speedcrunch_TRANSLATION_DIR}
     COMMAND cp ARGS -f src/resources/speedcrunch.png ${speedcrunch_RESOURCE_DIR}
     COMMAND cp ARGS -Rf src/books/ ${speedcrunch_BOOKSDIR}
