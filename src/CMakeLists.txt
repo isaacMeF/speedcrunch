@@ -27,6 +27,8 @@ IF( NOT APPLE )
 ENDIF( NOT APPLE )
 ENDIF( NOT WIN32 )
 
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR} 3rdparty/util base gui main math)
+
 # sources
 INCLUDE(SourceFiles.cmake)
 
@@ -51,10 +53,10 @@ IF(CMAKE_COMPILER_IS_GNUCXX )
   ADD_DEFINITIONS( -g -Wall )
 ENDIF(CMAKE_COMPILER_IS_GNUCXX )
 
-# setup for Qt4
+# setup for Qt5
 SET(QT_USE_QTXML TRUE)
 find_package(Qt5 COMPONENTS Core Widgets Gui Xml REQUIRED)
-include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Xml_INCLUDE_DIRS})
 
 # build everything
 qt5_add_resources( speedcrunch_RESOURCES_SOURCES ${speedcrunch_RESOURCES} )
@@ -86,12 +88,9 @@ ENDIF( APPLE )
 
 ADD_CUSTOM_TARGET( confclean COMMAND rm -rf Makefile CMakeFiles/ CMakeCache.txt cmake_install.cmake DartTestfile.txt install_manifest.txt )
 
-target_link_libraries(SpeedCrunch ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Xml_LIBRARIES})
-# set(EXECUTABLE_OUTPUT_PATH ${speedcrunch_BINARY_DIR}/../bin)
+target_link_libraries(${PROGNAME} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Xml_LIBRARIES})
 
 # install executable and translation files
-# note: it will install to CMAKE_INSTALL_PREFIX, which can be set e.g
-#  cmake ../trunk  -DCMAKE_INSTALL_PREFIX=/usr
 INSTALL(TARGETS ${PROGNAME} DESTINATION bin)
 INSTALL(FILES ${speedcrunch_TRANSLATIONS} DESTINATION share/speedcrunch/locale)
 
@@ -101,33 +100,25 @@ ENABLE_TESTING()
 ADD_EXECUTABLE(testhmath ${testhmath_SOURCES})
 ADD_TEST(testhmath ${EXECUTABLE_OUTPUT_PATH}/testhmath)
 
-#add_executable(testevaluator ${testevaluator_SOURCES})
-#target_link_libraries(testevaluator ${Qt5Xml_LIBRARIES})
-#add_test(testevaluator ${EXECUTABLE_OUTPUT_PATH}/testevaluator)
-
 ADD_EXECUTABLE(testfloatnum ${testfloatnum_SOURCES})
 ADD_TEST(testfloatnum ${EXECUTABLE_OUTPUT_PATH}/testfloatnum)
 
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR} 3rdparty/util base gui main math ${Qt5Xml_INCLUDE_DIRS})
-
-# books
 SET(BOOKSDIR "${CMAKE_INSTALL_PREFIX}/share/${PROGNAME}/books/")
 ADD_DEFINITIONS("-DBOOKSDIR=\\\"${BOOKSDIR}\\\"")
 
-INSTALL(FILES       src/books/books.css
+INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/books/books.css
         DESTINATION ${BOOKSDIR}
 )
 
-INSTALL(DIRECTORY   src/books/images src/books/ca src/books/cs src/books/de src/books/en src/books/es src/books/es_AR src/books/eu src/books/fi src/books/fr src/books/he src/books/id src/books/it src/books/nb src/books/nl src/books/pt src/books/pt_BR src/books/pl src/books/ro src/books/ru src/books/sv src/books/tr src/books/zh_CN
+INSTALL(DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/books/images ${CMAKE_CURRENT_SOURCE_DIR}/books/ca ${CMAKE_CURRENT_SOURCE_DIR}/books/cs ${CMAKE_CURRENT_SOURCE_DIR}/books/de ${CMAKE_CURRENT_SOURCE_DIR}/books/en ${CMAKE_CURRENT_SOURCE_DIR}/books/es ${CMAKE_CURRENT_SOURCE_DIR}/books/es_AR ${CMAKE_CURRENT_SOURCE_DIR}/books/eu ${CMAKE_CURRENT_SOURCE_DIR}/books/fi ${CMAKE_CURRENT_SOURCE_DIR}/books/fr ${CMAKE_CURRENT_SOURCE_DIR}/books/he ${CMAKE_CURRENT_SOURCE_DIR}/books/id ${CMAKE_CURRENT_SOURCE_DIR}/books/it ${CMAKE_CURRENT_SOURCE_DIR}/books/nb ${CMAKE_CURRENT_SOURCE_DIR}/books/nl ${CMAKE_CURRENT_SOURCE_DIR}/books/pt ${CMAKE_CURRENT_SOURCE_DIR}/books/pt_BR ${CMAKE_CURRENT_SOURCE_DIR}/books/pl ${CMAKE_CURRENT_SOURCE_DIR}/books/ro ${CMAKE_CURRENT_SOURCE_DIR}/books/ru ${CMAKE_CURRENT_SOURCE_DIR}/books/sv ${CMAKE_CURRENT_SOURCE_DIR}/books/tr ${CMAKE_CURRENT_SOURCE_DIR}/books/zh_CN
         DESTINATION "${BOOKSDIR}"
         PATTERN     ".svn" EXCLUDE
 )
 
-# freedesktop file
-INSTALL(FILES       src/speedcrunch.desktop
+INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/speedcrunch.desktop
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications/"
 )
 
-INSTALL(FILES       src/resources/speedcrunch.png
+INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/resources/speedcrunch.png
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps/"
 )
