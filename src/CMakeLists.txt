@@ -35,7 +35,6 @@ INCLUDE(SourceFiles.cmake)
 # resources
 SET(speedcrunch_RESOURCES resources/speedcrunch.qrc)
 
-# translations
 INCLUDE(Translations.cmake)
 
 IF( MINGW )
@@ -55,16 +54,32 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX )
 
 # setup for Qt5
 SET(QT_USE_QTXML TRUE)
-find_package(Qt5 COMPONENTS Core Widgets Gui Xml REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui Xml LinguistTools REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Xml_INCLUDE_DIRS})
+
+SET(speedcrunch_QM_FILES "")
+FOREACH(ts_file ${speedcrunch_TRANSLATIONS})
+    GET_FILENAME_COMPONENT(ts_base "${ts_file}" NAME_WE)
+    
+    SET(input_ts "${CMAKE_CURRENT_SOURCE_DIR}/i18n/${ts_base}.ts")
+    SET(output_qm "${CMAKE_CURRENT_BINARY_DIR}/${ts_base}.qm")
+    
+    ADD_CUSTOM_COMMAND(
+        OUTPUT "${output_qm}"
+        COMMAND Qt5::lrelease "${input_ts}" -qm "${output_qm}"
+        DEPENDS "${input_ts}"
+        COMMENT "Compiling translation ${ts_base}.ts -> ${ts_base}.qm"
+    )
+    LIST(APPEND speedcrunch_QM_FILES "${output_qm}")
+ENDFOREACH()
 
 # build everything
 qt5_add_resources( speedcrunch_RESOURCES_SOURCES ${speedcrunch_RESOURCES} )
 qt5_wrap_ui( speedcrunch_FORMS_HEADERS ${speedcrunch_FORMS} )
 qt5_wrap_cpp( speedcrunch_HEADERS_MOC ${speedcrunch_HEADERS} )
-find_program(QT_LRELEASE_EXECUTABLE lrelease)
+
 IF( APPLE )
-  ADD_EXECUTABLE( ${PROGNAME} MACOSX_BUNDLE ${speedcrunch_SOURCES} ${speedcrunch_HEADERS_MOC} ${speedcrunch_RESOURCES_SOURCES} ${speedcruch_FORMS_HEADERS} )
+  ADD_EXECUTABLE( ${PROGNAME} MACOSX_BUNDLE ${speedcrunch_SOURCES} ${speedcrunch_HEADERS_MOC} ${speedcrunch_RESOURCES_SOURCES} ${speedcruch_FORMS_HEADERS} ${speedcrunch_QM_FILES} )
   SET( speedcrunch_RESOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/Resources )
   SET( speedcrunch_TRANSLATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/MacOS/locale )
   SET( speedcrunch_BOOKSDIR ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/MacOS/books )
@@ -74,15 +89,14 @@ IF( APPLE )
     COMMAND mkdir ARGS -p ${speedcrunch_BOOKSDIR}
     COMMAND cp ARGS -f src/resources/${MACOSX_BUNDLE_ICON_FILE} ${speedcrunch_RESOURCE_DIR}
     COMMAND cp ARGS -f src/speedcrunch.desktop ${speedcrunch_RESOURCE_DIR}
-    COMMAND bash -c "${QT_LRELEASE_EXECUTABLE} src/i18n/*.ts"    COMMAND cp ARGS -f src/i18n/*.qm ${speedcrunch_TRANSLATION_DIR}
+    COMMAND cp ARGS -f ${speedcrunch_QM_FILES} ${speedcrunch_TRANSLATION_DIR}
     COMMAND cp ARGS -f src/resources/speedcrunch.png ${speedcrunch_RESOURCE_DIR}
     COMMAND cp ARGS -Rf src/books/ ${speedcrunch_BOOKSDIR}
     COMMAND rm ARGS -f ${speedcrunch_BOOKSDIR}/genbooks.sh
     COMMAND rm ARGS -rf ${speedcrunch_BOOKSDIR}/i18n
-    COMMAND for ARGS svnDir in `find ${speedcrunch_BOOKSDIR} -type d -name \".svn\"` \; do rm -rf $svnDir \; done
     COMMENT Setting up translations & resources )
 ELSE( APPLE )
-  ADD_EXECUTABLE( ${PROGNAME} ${speedcrunch_SOURCES} ${speedcrunch_HEADERS_MOC} ${speedcrunch_RESOURCES_SOURCES} ${speedcrunch_FORMS_HEADERS} )
+  ADD_EXECUTABLE( ${PROGNAME} ${speedcrunch_SOURCES} ${speedcrunch_HEADERS_MOC} ${speedcrunch_RESOURCES_SOURCES} ${speedcrunch_FORMS_HEADERS} ${speedcrunch_QM_FILES} )
 ENDIF( APPLE )
 
 ADD_CUSTOM_TARGET( confclean COMMAND rm -rf Makefile CMakeFiles/ CMakeCache.txt cmake_install.cmake DartTestfile.txt install_manifest.txt )
@@ -91,7 +105,7 @@ target_link_libraries(${PROGNAME} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5
 
 # install executable and translation files
 INSTALL(TARGETS ${PROGNAME} DESTINATION bin)
-INSTALL(FILES ${speedcrunch_TRANSLATIONS} DESTINATION share/speedcrunch/locale)
+INSTALL(FILES ${speedcrunch_QM_FILES} DESTINATION share/speedcrunch/locale)
 
 # required for regression tests
 ENABLE_TESTING()
@@ -114,10 +128,12 @@ INSTALL(DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/books/images ${CMAKE_CURRENT_SOU
         PATTERN     ".svn" EXCLUDE
 )
 
-INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/speedcrunch.desktop
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications/"
-)
+IF( NOT WIN32 )
+  INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/speedcrunch.desktop
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications/"
+  )
 
-INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/resources/speedcrunch.png
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps/"
-)
+  INSTALL(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/resources/speedcrunch.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps/"
+  )
+ENDIF( NOT WIN32 )
