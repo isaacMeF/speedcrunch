@@ -22,6 +22,7 @@
 #include "aboutbox.hxx"
 
 #include <QtGui>
+#include <QtWidgets>
 
 
 #define MAKE_STRING(a) DO_MAKE_STRING(a)

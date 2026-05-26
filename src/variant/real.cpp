@@ -270,8 +270,8 @@ RawFloatIO LongReal::convert(int digits, FmtMode mode,
     }
     result.baseSignificand = base;
     result.signSignificand = _cvtSign(tokens.sign);
-    result.intpart = QString::fromAscii(tokens.intpart.buf);
-    result.fracpart = QString::fromAscii(tokens.fracpart.buf);
+    result.intpart = QString::fromLatin1(tokens.intpart.buf);
+    result.fracpart = QString::fromLatin1(tokens.fracpart.buf);
   }
   return result;
 }

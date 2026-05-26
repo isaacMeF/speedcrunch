@@ -1798,7 +1798,7 @@ void MainWindow::loadSession()
       QMessageBox::critical( this, tr( "Error" ), errMsg.arg( fname ) );
       return;
     }
-    HNumber num( val.toAscii().data() );
+    HNumber num( val.toLatin1().data() );
     if (  num != HNumber::nan() )
       d->evaluator->set( var, num );
   }
@@ -2582,7 +2582,7 @@ void MainWindow::Private::restoreVariables()
     evaluator->setExpression( settings.variables[k] );
     evaluator->eval();
     QStringList list = settings.variables[k].split( "=" );
-    evaluator->set( list[0], HNumber( list[1].toAscii().data() ) );
+    evaluator->set( list[0], HNumber( list[1].toLatin1().data() ) );
   }
 
   // free memory

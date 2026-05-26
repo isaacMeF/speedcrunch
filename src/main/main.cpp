@@ -27,6 +27,9 @@ int main( int argc, char * argv[] )
 {
   QApplication app( argc, argv );
 
+  QCoreApplication::setOrganizationName("SpeedCrunch");
+  QCoreApplication::setApplicationName("SpeedCrunch");
+
   MainWindow win;
   win.show();
 

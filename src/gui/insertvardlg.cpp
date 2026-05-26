@@ -72,7 +72,7 @@ InsertVariableDlg::InsertVariableDlg( Evaluator * eval, char radixChar,
   d->eval = eval;
 
   if ( radixChar == 'C' )
-    d->radixChar = QLocale().decimalPoint().toAscii();
+    d->radixChar = QLocale().decimalPoint().toLatin1();
   else
     d->radixChar = radixChar;
 
@@ -166,7 +166,7 @@ InsertVariableDlg::~InsertVariableDlg()
 void InsertVariableDlg::setRadixChar( char c )
 {
   if ( c == 'C' )
-    c = QLocale().decimalPoint().toAscii();
+    c = QLocale().decimalPoint().toLatin1();
   if ( d->radixChar != c )
   {
     d->radixChar = c;

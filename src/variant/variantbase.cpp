@@ -49,7 +49,7 @@ class PtrList: public QVector<T*>
       while (++i < Base::size()
              && !(*newT == *Base::at(i)));
       if (i == Base::size())
-        append(newT);
+        this->append(newT);
       else
         delete newT;
       return Base::at(i);

@@ -44,7 +44,7 @@ Settings::Settings()
 char Settings::getRadixChar() const
 {
   if (radixChar == 0)
-    return QLocale().decimalPoint().toAscii();
+    return QLocale().decimalPoint().toLatin1();
   return radixChar;
 }
 
@@ -66,7 +66,7 @@ void Settings::load()
   if ( angleModeStr != "r" && angleModeStr != "d" )
     angleMode = 'r';
   else
-    angleMode = angleModeStr[0].toAscii();
+    angleMode = angleModeStr[0].toLatin1();
 
   // radix character special case
   QString radixCharStr;
@@ -74,7 +74,7 @@ void Settings::load()
   if ( radixCharStr != "C" && radixCharStr != "," && radixCharStr != "." )
     radixChar = 'C';
   else
-    radixChar = radixCharStr[0].toAscii();
+    radixChar = radixCharStr[0].toLatin1();
 
   saveSession    = settings->value( key + "RestoreLastSession", true  ).toBool();
   saveVariables  = settings->value( key + "SaveVariables",      true  ).toBool();
@@ -94,7 +94,7 @@ void Settings::load()
        && formatStr != "b" )
     format = 'g';
   else
-    format = formatStr[0].toAscii();
+    format = formatStr[0].toLatin1();
 
   precision = settings->value( key + "Precision", -1  ).toInt();
 
@@ -349,7 +349,7 @@ QSettings * createQSettings( const QString & KEY )
 {
   QSettings * settings = 0;
 
-  #ifdef Q_WS_WIN
+  #ifdef Q_OS_WIN
   #ifdef SPEEDCRUNCH_PORTABLE
     // Portable Windows version: settings are from INI file in the same directory
     QString appPath = QApplication::applicationFilePath();
@@ -364,16 +364,15 @@ QSettings * createQSettings( const QString & KEY )
     settings = new QSettings( QSettings::NativeFormat, QSettings::UserScope,
                               KEY, KEY );
   #endif // SPEEDCRUNCH_PORTABLE
-  #endif // Q_WS_WIN
+  #endif // Q_OS_WIN
 
-
-  #ifdef Q_WS_MAC
-    settings = new QSettings( QSettings::NativeFormat, QSettings::UserScope,
+  #ifdef Q_OS_MAC
+    settings = new QSettings( QSettings::IniFormat, QSettings::UserScope,
                               KEY, KEY );
-  #endif // Q_WS_MAC
+  #endif // Q_OS_MAC
 
 
-  #ifdef Q_WS_X11
+  #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
   #ifdef SPEEDCRUNCH_PORTABLE
     // Portable X11 version: settings are from INI file in the same directory
     BrInitError error;
@@ -389,11 +388,11 @@ QSettings * createQSettings( const QString & KEY )
     free( prefix );
     settings = new QSettings( iniFile, QSettings::IniFormat );
   #else
-    // Regular Unix (not Mac) version: settings from $HOME/.conf/SpeedCrunch
+    // Regular Unix (not Mac) version: settings from $HOME/.config/SpeedCrunch
     settings = new QSettings( QSettings::NativeFormat, QSettings::UserScope,
                               KEY, KEY );
   #endif // SPEEDCRUNCH_PORTABLE
-  #endif // Q_WS_X11
+  #endif // Q_OS_UNIX
 
   return settings;
 }

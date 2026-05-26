@@ -447,7 +447,7 @@ static QString changeBase(int idigitsz, int odigitsz, int osz,
   {
     while (bufofs < odigitsz)
     {
-      c = input.at(i).toAscii() - '0';
+      c = input.at(i).toLatin1() - '0';
       if (c > '9')
         c = (c - ('A' - '0' - 10)) & 0xF;
       buf = (buf << idigitsz) + c;

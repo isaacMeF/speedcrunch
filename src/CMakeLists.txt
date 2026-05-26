@@ -9,12 +9,11 @@ IF( APPLE )
   SET( MACOSX_BUNDLE_SHORT_VERSION_STRING ${speedcrunch_VERSION} )
   SET( MACOSX_BUNDLE_VERSION ${speedcrunch_VERSION} )
   SET( MACOSX_BUNDLE_LONG_VERSION_STRING Version ${speedcrunch_VERSION} )
-  SET( CMAKE_OSX_ARCHITECTURES ppc;i386 ) #Comment out if not universal binary
 ELSE( APPLE )
   SET( PROGNAME speedcrunch )
 ENDIF( APPLE )
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.5)
 SET(CMAKE_COLOR_MAKEFILE ON)
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 SET(CMAKE_INCLUDE_CURRENT_DIR TRUE)
@@ -54,13 +53,14 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX )
 
 # setup for Qt4
 SET(QT_USE_QTXML TRUE)
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5 COMPONENTS Core Widgets Gui Xml REQUIRED)
+include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 
 # build everything
-qt4_add_RESOURCES( speedcrunch_RESOURCES_SOURCES ${speedcrunch_RESOURCES} )
-QT4_WRAP_UI( speedcrunch_FORMS_HEADERS ${speedcrunch_FORMS} )
-QT4_WRAP_CPP( speedcrunch_HEADERS_MOC ${speedcrunch_HEADERS} )
+qt5_add_resources( speedcrunch_RESOURCES_SOURCES ${speedcrunch_RESOURCES} )
+qt5_wrap_ui( speedcrunch_FORMS_HEADERS ${speedcrunch_FORMS} )
+qt5_wrap_cpp( speedcrunch_HEADERS_MOC ${speedcrunch_HEADERS} )
+find_program(QT_LRELEASE_EXECUTABLE lrelease)
 IF( APPLE )
   ADD_EXECUTABLE( ${PROGNAME} MACOSX_BUNDLE ${speedcrunch_SOURCES} ${speedcrunch_HEADERS_MOC} ${speedcrunch_RESOURCES_SOURCES} ${speedcruch_FORMS_HEADERS} )
   SET( speedcrunch_RESOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/Resources )
@@ -70,9 +70,12 @@ IF( APPLE )
     COMMAND mkdir ARGS -p ${speedcrunch_RESOURCE_DIR}
     COMMAND mkdir ARGS -p ${speedcrunch_TRANSLATION_DIR}
     COMMAND mkdir ARGS -p ${speedcrunch_BOOKSDIR}
-    COMMAND cp ARGS -f resources/${MACOSX_BUNDLE_ICON_FILE} ${speedcrunch_RESOURCE_DIR}
-    COMMAND cp ARGS -f i18n/*.qm ${speedcrunch_TRANSLATION_DIR}
-    COMMAND cp ARGS -Rf books/ ${speedcrunch_BOOKSDIR}
+    COMMAND cp ARGS -f src/resources/${MACOSX_BUNDLE_ICON_FILE} ${speedcrunch_RESOURCE_DIR}
+    COMMAND cp ARGS -f src/speedcrunch.desktop ${speedcrunch_RESOURCE_DIR}
+    COMMAND ${QT_LRELEASE_EXECUTABLE} src/i18n/*.ts -qm src/i18n/*.qm
+    COMMAND cp ARGS -f src/i18n/*.qm ${speedcrunch_TRANSLATION_DIR}
+    COMMAND cp ARGS -f src/resources/speedcrunch.png ${speedcrunch_RESOURCE_DIR}
+    COMMAND cp ARGS -Rf src/books/ ${speedcrunch_BOOKSDIR}
     COMMAND rm ARGS -f ${speedcrunch_BOOKSDIR}/genbooks.sh
     COMMAND rm ARGS -rf ${speedcrunch_BOOKSDIR}/i18n
     COMMAND for ARGS svnDir in `find ${speedcrunch_BOOKSDIR} -type d -name \".svn\"` \; do rm -rf $svnDir \; done
@@ -83,8 +86,7 @@ ENDIF( APPLE )
 
 ADD_CUSTOM_TARGET( confclean COMMAND rm -rf Makefile CMakeFiles/ CMakeCache.txt cmake_install.cmake DartTestfile.txt install_manifest.txt )
 
-TARGET_LINK_LIBRARIES(${PROGNAME} ${QT_LIBRARIES} ${LINK_FLAGS})
-
+target_link_libraries(SpeedCrunch ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Xml_LIBRARIES})
 # set(EXECUTABLE_OUTPUT_PATH ${speedcrunch_BINARY_DIR}/../bin)
 
 # install executable and translation files
@@ -100,32 +102,32 @@ ADD_EXECUTABLE(testhmath ${testhmath_SOURCES})
 ADD_TEST(testhmath ${EXECUTABLE_OUTPUT_PATH}/testhmath)
 
 #add_executable(testevaluator ${testevaluator_SOURCES})
-#target_link_libraries(testevaluator ${QT_LIBRARIES})
+#target_link_libraries(testevaluator ${Qt5Xml_LIBRARIES})
 #add_test(testevaluator ${EXECUTABLE_OUTPUT_PATH}/testevaluator)
 
 ADD_EXECUTABLE(testfloatnum ${testfloatnum_SOURCES})
 ADD_TEST(testfloatnum ${EXECUTABLE_OUTPUT_PATH}/testfloatnum)
 
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR} 3rdparty/util base gui main math)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR} 3rdparty/util base gui main math ${Qt5Xml_INCLUDE_DIRS})
 
 # books
 SET(BOOKSDIR "${CMAKE_INSTALL_PREFIX}/share/${PROGNAME}/books/")
 ADD_DEFINITIONS("-DBOOKSDIR=\\\"${BOOKSDIR}\\\"")
 
-INSTALL(FILES       books/books.css
+INSTALL(FILES       src/books/books.css
         DESTINATION ${BOOKSDIR}
 )
 
-INSTALL(DIRECTORY   books/images books/ca books/cs books/de books/en books/es books/es_AR books/eu books/fi books/fr books/he books/id books/it books/nb books/nl books/pt books/pt_BR books/pl books/ro books/ru books/sv books/tr books/zh_CN
+INSTALL(DIRECTORY   src/books/images src/books/ca src/books/cs src/books/de src/books/en src/books/es src/books/es_AR src/books/eu src/books/fi src/books/fr src/books/he src/books/id src/books/it src/books/nb src/books/nl src/books/pt src/books/pt_BR src/books/pl src/books/ro src/books/ru src/books/sv src/books/tr src/books/zh_CN
         DESTINATION "${BOOKSDIR}"
         PATTERN     ".svn" EXCLUDE
 )
 
 # freedesktop file
-INSTALL(FILES       speedcrunch.desktop
+INSTALL(FILES       src/speedcrunch.desktop
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications/"
 )
 
-INSTALL(FILES       resources/speedcrunch.png
+INSTALL(FILES       src/resources/speedcrunch.png
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps/"
 )
